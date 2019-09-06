@@ -1,5 +1,4 @@
 import React, { Component } from "react";
-import ChatBox from "./ChatBox";
 import { connect } from "react-redux";
 import {
   logout,
@@ -9,6 +8,8 @@ import {
   errorOccurred,
   connectionClosed
 } from "./../../actions";
+import NoMessages from "./NoMessages";
+import ChatView from "./ChatView";
 
 const chatIcon = require("../../images/smartphone.png");
 const styleObject = {
@@ -74,9 +75,6 @@ class HomePage extends Component {
     }
   };
 
-  returnClasses = type =>
-    type === "sent" ? "bg-light" : "bg-secondary text-white float-right";
-
   render() {
     const { logout, wsState } = this.props;
 
@@ -93,18 +91,11 @@ class HomePage extends Component {
           </button>
         </nav>
 
-        <div className="flex-grow-1 p-2" style={{ overflow: "auto" }}>
-          {wsState.messageList.map((message, i) => (
-            <ChatBox
-              key={message + i}
-              className={this.returnClasses(message.type)}
-              text={message.message}
-            />
-          ))}
-
-          {/* <ChatBox className="bg-light" />
-          <ChatBox className="bg-secondary text-white" /> */}
-        </div>
+        {wsState.messageList.length ? (
+          <ChatView messageList={wsState.messageList} />
+        ) : (
+          <NoMessages />
+        )}
 
         <div className="input-group input-group-lg my-2">
           <textarea
