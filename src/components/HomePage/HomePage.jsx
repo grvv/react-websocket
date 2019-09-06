@@ -1,7 +1,14 @@
 import React, { Component } from "react";
 import ChatBox from "./ChatBox";
 import { connect } from "react-redux";
-import { logout } from "./../../actions";
+import {
+  logout,
+  connectedToWs,
+  sendMessage,
+  messageReceived,
+  errorOccurred,
+  connectionClosed
+} from "./../../actions";
 
 const chatIcon = require("../../images/smartphone.png");
 const styleObject = {
@@ -11,11 +18,67 @@ const styleObject = {
 };
 
 class HomePage extends Component {
-  // state = {  }
-  render() {
-    const { logout } = this.props;
+  state = {
+    chatBoxText: ""
+  };
 
-    console.log(this.props)
+  ws = new WebSocket("wss://echo.websocket.org");
+
+  handleInputChange = e => {
+    const { value: chatBoxText } = e.target;
+    this.setState({ chatBoxText });
+  };
+
+  sendMessage = () => {
+    const { chatBoxText } = this.state;
+
+    this.ws.send(chatBoxText);
+    this.props.sendMessage({ type: "sent", message: chatBoxText });
+    this.setState({ chatBoxText: "" });
+  };
+
+  componentDidMount() {
+    // var ws = new WebSocket("wss://echo.websocket.org");
+
+    this.ws.onopen = () => {
+      // connection opened
+      // ws.send("something just like this");
+      this.props.connectedToWs();
+    };
+
+    this.ws.onmessage = e => {
+      // a message was received
+      // console.log(">> Message received", e.data);
+      this.props.messageReceived({ type: "received", message: e.data });
+    };
+
+    this.ws.onerror = e => {
+      // an error occurred
+      // console.log(">> WS - an error occurred", e.message);
+      this.props.messageReceived({ message: e.message });
+    };
+
+    this.ws.onclose = e => {
+      // connection closed
+      const { code, reason } = e;
+
+      // console.log(">> WS - connection closed", e.code, e.reason);
+      this.props.connectionClosed({ code, reason });
+    };
+  }
+
+  componentWillUnmount = () => {
+    if (this.ws) {
+      // https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent
+      this.ws.close(1000, "Manually closed");
+    }
+  };
+
+  returnClasses = type =>
+    type === "sent" ? "bg-light" : "bg-secondary text-white float-right";
+
+  render() {
+    const { logout, wsState } = this.props;
 
     return (
       <div className="container" style={styleObject}>
@@ -31,17 +94,31 @@ class HomePage extends Component {
         </nav>
 
         <div className="flex-grow-1 p-2" style={{ overflow: "auto" }}>
-          <ChatBox className="bg-light" />
-          <ChatBox className="bg-secondary text-white" />
+          {wsState.messageList.map((message, i) => (
+            <ChatBox
+              key={message + i}
+              className={this.returnClasses(message.type)}
+              text={message.message}
+            />
+          ))}
+
+          {/* <ChatBox className="bg-light" />
+          <ChatBox className="bg-secondary text-white" /> */}
         </div>
 
         <div className="input-group input-group-lg my-2">
           <textarea
+            value={this.state.chatBoxText}
+            onChange={this.handleInputChange}
             className="form-control"
             style={{ resize: "none" }}
           ></textarea>
           <div className="input-group-append">
-            <button className="btn btn-primary" type="button">
+            <button
+              className="btn btn-primary"
+              type="button"
+              onClick={this.sendMessage}
+            >
               Submit Chat
             </button>
           </div>
@@ -51,7 +128,18 @@ class HomePage extends Component {
   }
 }
 
+const mapStateToProps = ({ wsState }) => ({ wsState });
+
+const mapDispatchToProps = {
+  logout,
+  connectedToWs,
+  sendMessage,
+  messageReceived,
+  errorOccurred,
+  connectionClosed
+};
+
 export default connect(
-  null,
-  { logout }
+  mapStateToProps,
+  mapDispatchToProps
 )(HomePage);

@@ -9,13 +9,10 @@ import { login } from "../../actions";
 
 class Login extends Component {
   onSubmit = formValues => {
-    console.log(formValues);
     this.props.login(formValues);
   };
 
   render() {
-    // console.log(this.props);
-
     return (
       <div className="card m-5">
         <div className="card-body">

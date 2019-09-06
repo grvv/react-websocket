@@ -17,14 +17,14 @@ import { createStore } from "redux";
 import { composeWithDevTools } from "redux-devtools-extension";
 
 // Thunk Stuff
-import { applyMiddleware } from "redux";
-import thunk from "redux-thunk";
+// import { applyMiddleware } from "redux";
+// import thunk from "redux-thunk";
 
 import history from "./history";
 
 ReactDOM.render(
   <Provider
-    store={createStore(reducers, composeWithDevTools(applyMiddleware(thunk)))}
+    store={createStore(reducers, composeWithDevTools())}
   >
     <Router history={history}>
       <App />
