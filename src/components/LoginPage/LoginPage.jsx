@@ -7,16 +7,16 @@ import validate from "./validation";
 import { connect } from "react-redux";
 import { login } from "../../actions";
 
-styleObject = {
-  display: "flex",
-  height: "100vh",
-  flexDirection: "column",
-  justifyContent: "center"
-};
-
 class Login extends Component {
   onSubmit = formValues => {
     this.props.login(formValues);
+  };
+
+  styleObject = {
+    display: "flex",
+    height: "100vh",
+    flexDirection: "column",
+    justifyContent: "center"
   };
 
   render() {
